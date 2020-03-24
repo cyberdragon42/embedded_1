@@ -8,14 +8,15 @@ int main(void)
 {
 	uint8_t arr[] = {0x01, 0x02, 0x05, 0x66, 0x17, 
 										 0xA8, 0x09, 0xAA, 0x03, 0x04};
+	uint8_t res[10] = {0};
 	InitializeClock();									 
 	Initialize();
 	status1 = ReadRegister();
 	WriteToRegister(0);
 	_status2 = ReadRegister();
 	Clear();
-										 
-	WriteDataArray(0x000000, arr);								 
+	WriteDataArray(0x000000, arr);	
+  ReadDataArray(0x000000,res);										 
 	while(1)
 	{
 		

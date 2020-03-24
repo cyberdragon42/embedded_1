@@ -95,7 +95,7 @@ uint8_t ReadRegister (void)
   enableCS();
 	uint8_t buf=0x05;
 	uint8_t status;
-	HAL_SPI_TransmitReceive(&SPI_Init_user, &buf, &status, 1, 1000);
+	HAL_SPI_TransmitReceive(&SPI_Init_user, &buf, &status, 1, 0xFFFF);
   disableCS();
 	return status;
 }
@@ -105,13 +105,13 @@ void WriteToRegister(uint8_t data)
 	//ewsr
 	uint8_t buf = 0x50;
   enableCS();
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
 	disableCS();
 	enableCS();
 	//wrsr
 	buf = 0x01;
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
-	HAL_SPI_Transmit(&SPI_Init_user,&data,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
+	HAL_SPI_Transmit(&SPI_Init_user,&data,1,0xFFFF);
 	disableCS();
 }
 
@@ -121,12 +121,31 @@ void Clear()
 	//wren
 	enableCS();
 	uint8_t buf=0x06;
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
 	disableCS();
 	//chip erase
 	enableCS();
 	buf=0x60;
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
+	disableCS();
+}
+
+void ReadDataArray(uint32_t address, uint8_t* result){
+	enableCS();
+	uint8_t buf = 0x03;
+	HAL_SPI_Transmit(&SPI_Init_user, &buf, 1, 0xFFFF);
+	
+	uint8_t _addr = address>>16;
+	HAL_SPI_Transmit(&SPI_Init_user, &_addr, 1, 0xFFFF);
+	_addr = address>>8;
+	HAL_SPI_Transmit(&SPI_Init_user, &_addr, 1, 0xFFFF);
+	_addr = address;
+	HAL_SPI_Transmit(&SPI_Init_user, &_addr, 1, 0xFFFF);
+	
+	for(uint8_t i=0;i<N;i++){ 
+		HAL_SPI_Receive(&SPI_Init_user, &buf, 1, 0xFFFF);
+		result[i]=buf;
+	}
 	disableCS();
 }
 
@@ -135,38 +154,36 @@ void WriteDataArray(uint32_t address, uint8_t* data)
 	//wren
 	enableCS();
 	uint8_t buf = 0x06;
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
 	disableCS();
 	enableCS();
 	
 	//aai
 	buf = 0xAD; 
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
-	disableCS();
-	enableCS();
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
 	
   uint8_t address1 = address>>16;
   uint8_t address2 = address>>8;
 	uint8_t address3 = address;
-	HAL_SPI_Transmit(&SPI_Init_user,&address1,1,1000);
-	HAL_SPI_Transmit(&SPI_Init_user,&address2,1,1000);
-	HAL_SPI_Transmit(&SPI_Init_user,&address3,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&address1,1,0xFFFF);
+	HAL_SPI_Transmit(&SPI_Init_user,&address2,1,0xFFFF);
+	HAL_SPI_Transmit(&SPI_Init_user,&address3,1,0xFFFF);
 	
-	HAL_SPI_Transmit(&SPI_Init_user,&data[0],1,1000);
-	HAL_SPI_Transmit(&SPI_Init_user,&data[1],1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&data[0],1,0xFFFF);
+	HAL_SPI_Transmit(&SPI_Init_user,&data[1],1,0xFFFF);
 	disableCS();
 	
 	for(int i=1; i<N/2; ++i)
 	{ 
-	   HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
-	   HAL_SPI_Transmit(&SPI_Init_user,&data[i*2],1,1000);
-		 HAL_SPI_Transmit(&SPI_Init_user,&data[i*2+1],1,1000);
+	   HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
+	   HAL_SPI_Transmit(&SPI_Init_user,&data[i*2],1,0xFFFF);
+		 HAL_SPI_Transmit(&SPI_Init_user,&data[i*2+1],1,0xFFFF);
 		 disableCS();
 	}	
 	
   //wrdi
 	buf = 0x04;
 	enableCS();
-	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,1000);
+	HAL_SPI_Transmit(&SPI_Init_user,&buf,1,0xFFFF);
 	disableCS();
 }
